@@ -24,20 +24,9 @@ async function saveProfile() {
   const lastName = document.getElementById('lastName').value.trim();
   if (!firstName || !lastName) return alert('Please enter your full name!');
 
-  const picInput = document.getElementById('picInput');
-  let picUrl = '';
-
-  if (picInput.files[0]) {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      picUrl = e.target.result; // base64 stored locally
-      await finishSave(firstName, lastName, picUrl);
-    };
-    reader.readAsDataURL(picInput.files[0]);
-  } else {
-    picUrl = `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=4f46e5&color=fff&size=100`;
-    await finishSave(firstName, lastName, picUrl);
-  }
+  // Always use generated avatar (no base64)
+  const picUrl = `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=4f46e5&color=fff&size=100`;
+  await finishSave(firstName, lastName, picUrl);
 }
 
 async function finishSave(firstName, lastName, picUrl) {
@@ -96,9 +85,13 @@ async function searchUsers() {
         <div class="code-text">${user.code}</div>
       </div>
       // Change this line in searchUsers():
-<button onclick="startChat('${user.code}', '${user.first_name} ${user.last_name}')">Chat</button>
+        <button onclick="startChat('${user.code}')">Chat</button>
     `;
     resultsDiv.appendChild(div);
   });
 }
 
+function startChat(otherCode) {
+  const roomId = [myProfile.code, otherCode].sort().join('__');
+  window.location.href = `chat.html?room=${roomId}&me=${myProfile.code}&with=${otherCode}`;
+}
