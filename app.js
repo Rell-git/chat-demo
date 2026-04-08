@@ -95,13 +95,10 @@ async function searchUsers() {
         <div class="bold">${user.first_name} ${user.last_name}</div>
         <div class="code-text">${user.code}</div>
       </div>
-      <button onclick="startChat('${user.code}', '${user.first_name} ${user.last_name}', '${user.pic_url}')">Chat</button>
+      // Change this line in searchUsers():
+<button onclick="startChat('${user.code}', '${user.first_name} ${user.last_name}')">Chat</button>
     `;
     resultsDiv.appendChild(div);
   });
 }
 
-function startChat(otherCode, otherName, otherPic) {
-  const roomId = [myProfile.code, otherCode].sort().join('__');
-  window.location.href = `chat.html?room=${roomId}&me=${myProfile.code}&with=${otherCode}&withName=${encodeURIComponent(otherName)}&withPic=${encodeURIComponent(otherPic)}`;
-}

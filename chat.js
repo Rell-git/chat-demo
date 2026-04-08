@@ -3,13 +3,30 @@ const params = new URLSearchParams(window.location.search);
 const roomId = params.get('room');
 const myCode = params.get('me');
 const otherCode = params.get('with');
-const otherName = decodeURIComponent(params.get('withName'));
-const otherPic = decodeURIComponent(params.get('withPic'));
 
 const myProfile = JSON.parse(localStorage.getItem('anonProfile'));
 
-document.getElementById('otherPic').src = otherPic;
-document.getElementById('otherName').textContent = otherName;
+let otherProfile = { first_name: otherCode, last_name: '', pic_url: '' };
+
+// Load other user's profile from Supabase (not from URL)
+async function init() {
+  const { data } = await supabaseClient
+    .from('users')
+    .select('*')
+    .eq('code', otherCode)
+    .single();
+
+  if (data) {
+    otherProfile = data;
+  }
+
+  document.getElementById('otherPic').src = otherProfile.pic_url || 
+    `https://ui-avatars.com/api/?name=${otherProfile.first_name}&background=4f46e5&color=fff`;
+  document.getElementById('otherName').textContent = 
+    otherProfile.first_name + ' ' + (otherProfile.last_name || '');
+
+  await loadMessages();
+}
 
 async function loadMessages() {
   const { data } = await supabaseClient
@@ -33,8 +50,12 @@ function addMessageToUI(msg) {
   const wrapper = document.createElement('div');
   wrapper.className = 'msg-wrapper ' + (isMe ? 'me' : 'them');
 
-  const pic = isMe ? myProfile.picUrl : otherPic;
-  const name = isMe ? myProfile.firstName : otherName.split(' ')[0];
+  const pic = isMe 
+    ? myProfile.picUrl 
+    : (otherProfile.pic_url || `https://ui-avatars.com/api/?name=${otherProfile.first_name}&background=4f46e5&color=fff`);
+  const name = isMe 
+    ? myProfile.firstName 
+    : otherProfile.first_name;
 
   wrapper.innerHTML = `
     <img src="${pic}" class="avatar-xs" />
@@ -76,4 +97,4 @@ document.getElementById('msgInput').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') sendMessage();
 });
 
-loadMessages();
+init();
