@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AnonChat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>💬 AnonChat</h1>
+    <div class="card">
+      <p>Your unique ID:</p>
+      <h2 id="myId">Loading...</h2>
+      <button onclick="copyId()">📋 Copy My ID</button>
+    </div>
+    <div class="card">
+      <p>Enter a friend's ID to chat:</p>
+      <input id="searchId" type="text" placeholder="Paste their ID here..." />
+      <button onclick="startChat()">Start Chat →</button>
+    </div>
+  </div>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
