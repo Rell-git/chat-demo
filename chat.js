@@ -3,15 +3,14 @@ const roomId = params.get('room');
 const myId = params.get('me');
 const otherId = params.get('with');
 
-document.getElementById('chatWith').textContent = `Chatting with: ${otherId}`;
+document.getElementById('chatWith').textContent = 'Chatting with: ' + otherId;
 
-// Load Supabase
-const { createClient } = supabase;
-const client = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Fix #1: renamed from 'client' to 'supabaseClient'
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Load existing messages
 async function loadMessages() {
-  const { data } = await client
+  const { data } = await supabaseClient
     .from('messages')
     .select('*')
     .eq('room_id', roomId)
@@ -33,7 +32,7 @@ function renderMessages(msgs) {
 }
 
 // Real-time listener
-client
+supabaseClient
   .channel('room_' + roomId)
   .on('postgres_changes', {
     event: 'INSERT',
@@ -56,13 +55,16 @@ async function sendMessage() {
   const input = document.getElementById('msgInput');
   const text = input.value.trim();
   if (!text) return;
-  await client.from('messages').insert({
+  await supabaseClient.from('messages').insert({
     room_id: roomId,
     sender_id: myId,
     text: text
   });
   input.value = '';
 }
+
+// Fix #2: expose to window so onclick works
+window.sendMessage = sendMessage;
 
 document.getElementById('msgInput').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') sendMessage();
