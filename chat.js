@@ -1,37 +1,52 @@
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const params = new URLSearchParams(window.location.search);
 const roomId = params.get('room');
-const myId = params.get('me');
-const otherId = params.get('with');
+const myCode = params.get('me');
+const otherCode = params.get('with');
+const otherName = decodeURIComponent(params.get('withName'));
+const otherPic = decodeURIComponent(params.get('withPic'));
 
-document.getElementById('chatWith').textContent = 'Chatting with: ' + otherId;
+const myProfile = JSON.parse(localStorage.getItem('anonProfile'));
 
-// Fix #1: renamed from 'client' to 'supabaseClient'
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+document.getElementById('otherPic').src = otherPic;
+document.getElementById('otherName').textContent = otherName;
 
-// Load existing messages
 async function loadMessages() {
   const { data } = await supabaseClient
     .from('messages')
     .select('*')
     .eq('room_id', roomId)
     .order('created_at', { ascending: true });
-
   renderMessages(data || []);
 }
 
 function renderMessages(msgs) {
   const container = document.getElementById('messages');
   container.innerHTML = '';
-  msgs.forEach(msg => {
-    const div = document.createElement('div');
-    div.className = msg.sender_id === myId ? 'msg me' : 'msg them';
-    div.textContent = msg.text;
-    container.appendChild(div);
-  });
+  msgs.forEach(msg => addMessageToUI(msg));
   container.scrollTop = container.scrollHeight;
 }
 
-// Real-time listener
+function addMessageToUI(msg) {
+  const isMe = msg.sender_id === myCode;
+  const container = document.getElementById('messages');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg-wrapper ' + (isMe ? 'me' : 'them');
+
+  const pic = isMe ? myProfile.picUrl : otherPic;
+  const name = isMe ? myProfile.firstName : otherName.split(' ')[0];
+
+  wrapper.innerHTML = `
+    <img src="${pic}" class="avatar-xs" />
+    <div class="msg-bubble">
+      <div class="msg-name">${name}</div>
+      <div class="msg ${isMe ? 'me' : 'them'}">${msg.text}</div>
+    </div>
+  `;
+  container.appendChild(wrapper);
+  container.scrollTop = container.scrollHeight;
+}
+
 supabaseClient
   .channel('room_' + roomId)
   .on('postgres_changes', {
@@ -40,32 +55,23 @@ supabaseClient
     table: 'messages',
     filter: `room_id=eq.${roomId}`
   }, (payload) => {
-    const msg = payload.new;
-    const container = document.getElementById('messages');
-    const div = document.createElement('div');
-    div.className = msg.sender_id === myId ? 'msg me' : 'msg them';
-    div.textContent = msg.text;
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
+    addMessageToUI(payload.new);
   })
   .subscribe();
 
-// Send message
 async function sendMessage() {
   const input = document.getElementById('msgInput');
   const text = input.value.trim();
   if (!text) return;
   await supabaseClient.from('messages').insert({
     room_id: roomId,
-    sender_id: myId,
-    text: text
+    sender_id: myCode,
+    text
   });
   input.value = '';
 }
 
-// Fix #2: expose to window so onclick works
 window.sendMessage = sendMessage;
-
 document.getElementById('msgInput').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') sendMessage();
 });

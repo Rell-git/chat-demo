@@ -7,20 +7,41 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>💬 AnonChat</h1>
-    <div class="card">
-      <p>Your unique ID:</p>
-      <h2 id="myId">Loading...</h2>
-      <button onclick="copyId()">📋 Copy My ID</button>
+
+<!-- PROFILE SETUP MODAL -->
+<div id="setupModal" class="modal">
+  <div class="modal-box">
+    <h2>👤 Create Your Profile</h2>
+    <div class="avatar-upload">
+      <img id="previewPic" src="https://ui-avatars.com/api/?name=You&background=4f46e5&color=fff&size=100" />
+      <label for="picInput">📷 Upload Photo</label>
+      <input type="file" id="picInput" accept="image/*" onchange="previewPhoto(event)" />
     </div>
-    <div class="card">
-      <p>Enter a friend's ID to chat:</p>
-      <input id="searchId" type="text" placeholder="Paste their ID here..." />
-      <button onclick="startChat()">Start Chat →</button>
-    </div>
+    <input id="firstName" type="text" placeholder="First Name" />
+    <input id="lastName" type="text" placeholder="Last Name" />
+    <button onclick="saveProfile()">Save & Continue →</button>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="container" style="display:none">
+  <div class="profile-bar">
+    <img id="myPic" class="avatar-sm" />
+    <div>
+      <div id="myName" class="bold"></div>
+      <div id="myCode" class="code-text"></div>
+    </div>
+    <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+  </div>
+
+  <div class="card">
+    <p>🔍 Search a friend by <b>name</b> or <b>code</b>:</p>
+    <input id="searchInput" type="text" placeholder="Type name or code..." oninput="searchUsers()" />
+    <div id="searchResults"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="app.js"></script>
 </body>
